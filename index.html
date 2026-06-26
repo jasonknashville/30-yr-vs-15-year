@@ -302,12 +302,13 @@ html, body { height: 100%; font-family: 'Jost', sans-serif; overflow-x: hidden; 
 
           <div class="accel" id="accel30">
             <div class="accel-title" id="accelTitle">With Extra Toward Principal</div>
-            <div id="accelBody">
+            <div id="accelRows">
               <div class="res-row"><span class="res-label">New Monthly Payment</span><span class="res-val" id="accelPay">—</span></div>
               <div class="res-row"><span class="res-label">Paid Off In</span><span class="res-val" id="accelTime">—</span></div>
               <div class="res-row"><span class="res-label">Time Saved</span><span class="res-val" id="accelSaved">—</span></div>
               <div class="res-row"><span class="res-label">Interest Saved</span><span class="res-val" id="accelInt">—</span></div>
             </div>
+            <div class="accel-empty" id="accelEmpty" style="display:none;">Enter an amount in &ldquo;Extra / Month (30-yr)&rdquo; above to see how much faster the 30-year pays off and how much interest you&rsquo;d save.</div>
           </div>
         </div>
 
@@ -501,8 +502,9 @@ function calc() {
   document.getElementById('intGap').textContent = money(Math.abs(intGap));
 
   /* accelerated 30-year block */
-  const accelBody = document.getElementById('accelBody');
   const accelTitle = document.getElementById('accelTitle');
+  const accelRows = document.getElementById('accelRows');
+  const accelEmpty = document.getElementById('accelEmpty');
   const monthsSaved = base30.months - fast30.months;
   const intSaved = base30.totalInterest - fast30.totalInterest;
   if (extra > 0 && loan > 0 && isFinite(fast30.months)) {
@@ -511,10 +513,12 @@ function calc() {
     document.getElementById('accelTime').textContent = ym(fast30.months);
     document.getElementById('accelSaved').textContent = ym(monthsSaved);
     document.getElementById('accelInt').textContent = money(intSaved);
-    accelBody.querySelectorAll('.res-row').forEach(r => r.style.display = '');
+    accelRows.style.display = '';
+    accelEmpty.style.display = 'none';
   } else {
     accelTitle.textContent = 'Add Extra Toward Principal';
-    accelBody.innerHTML = '<div class="accel-empty">Enter an amount in “Extra / Month (30-yr)” above to see how much faster the 30-year pays off and how much interest you’d save.</div>';
+    accelRows.style.display = 'none';
+    accelEmpty.style.display = '';
   }
 
   renderTakeaway({ loan, extra, base30, fast30, base15, payGap, intGap, monthsSaved, intSaved });
