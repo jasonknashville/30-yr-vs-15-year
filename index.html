@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30-Year vs 15-Year Mortgage Calculator | The Jason Kaczmarski Team</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #c9a96e;
+  --gold-light: #e8d5b0;
+  --white: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-hover: rgba(255, 255, 255, 0.22);
+  --field-bg: rgba(8, 12, 20, 0.42);
+  --field-border: rgba(255, 255, 255, 0.22);
+  --text-on-dark: rgba(255, 255, 255, 0.95);
+  --text-muted: rgba(255, 255, 255, 0.68);
+  --text-faint: rgba(255, 255, 255, 0.45);
+  --line-30: rgba(255, 255, 255, 0.55);
+  --line-15: #9db8c9;
+  --line-extra: #c9a96e;
+}
+html, body { height: 100%; font-family: 'Jost', sans-serif; overflow-x: hidden; background: #0b0f17; }
+
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url('https://kvcore-library.s3.amazonaws.com/remax1stchoice8207/images/36e9d94a41744196b10ed128cf51dce2.jpeg');
+  background-size: cover; background-position: center center; background-repeat: no-repeat;
+}
+.bg-overlay {
+  position: fixed; inset: 0; z-index: 1;
+  background:
+    radial-gradient(ellipse 85% 55% at 50% 22%, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(to bottom,
+      rgba(8,12,20,0.70) 0%, rgba(8,12,20,0.62) 18%,
+      rgba(8,12,20,0.74) 55%, rgba(8,12,20,0.86) 100%);
+}
+.bg-grain {
+  position: fixed; inset: 0; z-index: 2; opacity: 0.022; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.page { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* HEADER */
+.header {
+  padding: 22px 32px; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; animation: fadeDown 0.8s ease both;
+}
+.back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px;
+  padding: 10px 16px; backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  text-decoration: none; color: var(--text-on-dark);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+.back-btn svg { width: 14px; height: 14px; color: var(--gold-light); transition: transform 0.25s; }
+.back-btn:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.42); transform: translateY(-2px); }
+.back-btn:hover svg { transform: translateX(-3px); }
+.header-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-muted); text-shadow: 0 1px 8px rgba(0,0,0,0.6); text-align: right;
+}
+
+/* HERO */
+.hero {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 6px 24px 0; text-align: center; animation: fadeUp 0.9s ease 0.15s both;
+}
+.hero-logo { height: 78px; width: auto; margin-bottom: 22px; filter: drop-shadow(0 4px 22px rgba(0,0,0,0.55)); }
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 5.2vw, 56px);
+  font-weight: 400; line-height: 1.08; color: var(--white); letter-spacing: -0.01em;
+  margin-bottom: 12px; text-shadow: 0 2px 28px rgba(0,0,0,0.55);
+}
+.hero h1 em { font-style: italic; color: var(--gold-light); }
+.hero-divider { width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 0 auto 14px; }
+.hero-sub {
+  font-size: 14px; font-weight: 300; letter-spacing: 0.06em; color: var(--text-muted);
+  max-width: 440px; line-height: 1.7; text-shadow: 0 1px 12px rgba(0,0,0,0.55);
+}
+
+/* MAIN */
+.main { padding: 40px 24px 8px; display: flex; justify-content: center; animation: fadeUp 1s ease 0.3s both; }
+.stack { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 16px; }
+
+/* glass panel base */
+.panel {
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px;
+  padding: 24px 26px; backdrop-filter: blur(20px) saturate(1.3); -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.16);
+  position: relative; overflow: hidden;
+}
+.panel::before {
+  content: ''; position: absolute; inset: 0; border-radius: 18px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+}
+.panel > * { position: relative; }
+
+.panel-eyebrow {
+  font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold-light); margin-bottom: 16px;
+}
+
+/* form fields */
+.field-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label {
+  font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+}
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .affix {
+  position: absolute; font-size: 14px; color: var(--text-faint); pointer-events: none; font-weight: 300;
+}
+.input-wrap .affix.pre { left: 14px; }
+.input-wrap .affix.suf { right: 14px; }
+.field input {
+  width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 11px;
+  padding: 12px 14px; color: var(--white); font-family: 'Jost', sans-serif; font-size: 16px; font-weight: 400;
+  transition: border-color 0.2s, box-shadow 0.2s; -moz-appearance: textfield;
+}
+.field input.has-pre { padding-left: 28px; }
+.field input.has-suf { padding-right: 30px; }
+.field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,169,110,0.22); }
+.field-note { font-size: 11px; font-weight: 300; color: var(--text-faint); line-height: 1.5; margin-top: 2px; }
+.loan-readout { font-size: 11.5px; color: var(--text-muted); margin-top: 14px; line-height: 1.6; }
+.loan-readout b { color: var(--gold-light); font-weight: 500; }
+
+/* rate note */
+.rate-note {
+  display: flex; align-items: flex-start; gap: 10px; margin-top: 4px;
+  font-size: 11.5px; font-weight: 300; color: var(--text-muted); line-height: 1.55;
+}
+.rate-note svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--gold-light); margin-top: 1px; }
+.rate-note b { color: var(--text-on-dark); font-weight: 500; }
+
+/* COMPARE COLUMNS */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.loan-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; gap: 10px; }
+.loan-term { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--white); line-height: 1.1; }
+.loan-chip {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold-light); border: 1px solid var(--glass-border); border-radius: 999px; padding: 4px 11px; white-space: nowrap;
+}
+.loan-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.divider-thin { height: 1px; background: rgba(255,255,255,0.14); margin: 2px 0 18px; }
+
+.res-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.res-row:last-child { border-bottom: none; }
+.res-label { font-size: 12.5px; font-weight: 300; letter-spacing: 0.04em; color: var(--text-muted); }
+.res-val { font-family: 'Cormorant Garamond', serif; font-size: 23px; font-weight: 600; color: var(--white); }
+.res-val.big { font-size: 27px; }
+
+/* accelerated block */
+.accel {
+  margin-top: 18px; padding: 16px 18px; border-radius: 13px;
+  background: rgba(201,169,110,0.10); border: 1px solid rgba(201,169,110,0.34);
+}
+.accel-title {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold-light); margin-bottom: 10px;
+}
+.accel .res-row { border-bottom-color: rgba(201,169,110,0.16); }
+.accel .res-val { color: var(--gold-light); }
+.accel-empty { font-size: 12px; font-weight: 300; color: var(--text-faint); line-height: 1.55; font-style: italic; }
+
+/* takeaway */
+.takeaway-eyebrow {
+  font-size: 10.5px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold-light); margin-bottom: 14px;
+}
+.takeaway p {
+  font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 400; line-height: 1.5;
+  color: var(--text-on-dark); margin-bottom: 11px;
+}
+.takeaway p:last-child { margin-bottom: 0; }
+.takeaway b { color: var(--gold-light); font-weight: 600; }
+
+/* chart */
+.chart-wrap { position: relative; height: 320px; margin-top: 8px; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin-top: 16px; }
+.leg { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.03em; }
+.leg .swatch { width: 22px; height: 3px; border-radius: 2px; }
+
+/* CONTACT */
+.contact-section { padding: 28px 24px 0; display: flex; justify-content: center; animation: fadeUp 1.1s ease 0.42s both; }
+.contact-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-width: 960px; }
+.contact-link {
+  flex: 1 1 240px; background: rgba(255,255,255,0.10); border: 1px solid var(--glass-border); border-radius: 14px;
+  padding: 16px 22px; backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 9px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-on-dark);
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+.contact-link svg { width: 15px; height: 15px; color: var(--gold-light); }
+.contact-link:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.42); transform: translateY(-3px); }
+
+/* FOOTER */
+.footer { margin-top: auto; padding: 38px 24px 30px; text-align: center; animation: fadeUp 1.2s ease 0.55s both; }
+.footer-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--text-on-dark); letter-spacing: 0.02em; margin-bottom: 6px; }
+.footer-phone { display: inline-block; font-size: 13px; letter-spacing: 0.08em; color: var(--gold-light); text-decoration: none; margin-bottom: 18px; transition: color 0.2s; }
+.footer-phone:hover { color: var(--white); }
+.footer-disclaimer { font-size: 10.5px; font-weight: 300; line-height: 1.65; color: var(--text-faint); max-width: 660px; margin: 0 auto; }
+.footer-disclaimer strong { color: var(--text-muted); font-weight: 500; }
+
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 760px) {
+  .header { padding: 18px 18px; }
+  .field-grid { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; }
+  .hero-logo { height: 64px; }
+  .contact-link { flex: 1 1 100%; }
+  .chart-wrap { height: 280px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="bg-overlay"></div>
+<div class="bg-grain"></div>
+
+<div class="page">
+  <header class="header">
+    <a class="back-btn" id="backBtn" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      All Tools
+    </a>
+    <span class="header-label">The Jason Kaczmarski Team</span>
+  </header>
+
+  <section class="hero">
+    <img class="hero-logo" src="https://kvcore-library.s3.amazonaws.com/remax1stchoice8207/images/03b9616f75a8e185d56a93c799829fdf.png" alt="RE/MAX 1st Choice — The Jason Kaczmarski Team">
+    <h1>30-Year vs 15-Year, <em>Side by Side</em></h1>
+    <div class="hero-divider"></div>
+    <p class="hero-sub">See what a shorter term — or a little extra each month on the 30-year — does to your payoff timeline and total interest.</p>
+  </section>
+
+  <main class="main">
+    <div class="stack">
+
+      <!-- SHARED INPUTS -->
+      <section class="panel">
+        <div class="panel-eyebrow">Your Numbers</div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="price">Home Price</label>
+            <div class="input-wrap">
+              <span class="affix pre">$</span>
+              <input class="has-pre" id="price" type="number" inputmode="numeric" min="0" step="1000" value="450000">
+            </div>
+          </div>
+          <div class="field">
+            <label for="downPct">Down Payment</label>
+            <div class="input-wrap">
+              <span class="affix suf">%</span>
+              <input class="has-suf" id="downPct" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="20">
+            </div>
+          </div>
+          <div class="field">
+            <label for="extra">Extra / Month (30-yr)</label>
+            <div class="input-wrap">
+              <span class="affix pre">$</span>
+              <input class="has-pre" id="extra" type="number" inputmode="numeric" min="0" step="25" value="250">
+            </div>
+          </div>
+        </div>
+        <div class="loan-readout" id="loanReadout"></div>
+      </section>
+
+      <!-- COMPARE -->
+      <section class="compare">
+        <!-- 30 YEAR -->
+        <div class="panel">
+          <div class="loan-head">
+            <div class="loan-term">30-Year Fixed</div>
+            <span class="loan-chip">360 Payments</span>
+          </div>
+          <div class="loan-fields">
+            <div class="field">
+              <label for="rate30">Interest Rate</label>
+              <div class="input-wrap">
+                <span class="affix suf">%</span>
+                <input class="has-suf" id="rate30" type="number" inputmode="decimal" min="0" max="25" step="0.01" value="6.49">
+              </div>
+            </div>
+          </div>
+          <div class="divider-thin"></div>
+          <div class="res-row"><span class="res-label">Monthly Payment (P&amp;I)</span><span class="res-val big" id="pi30">—</span></div>
+          <div class="res-row"><span class="res-label">Total Interest</span><span class="res-val" id="int30">—</span></div>
+          <div class="res-row"><span class="res-label">Payoff Time</span><span class="res-val" id="time30">—</span></div>
+
+          <div class="accel" id="accel30">
+            <div class="accel-title" id="accelTitle">With Extra Toward Principal</div>
+            <div id="accelBody">
+              <div class="res-row"><span class="res-label">New Monthly Payment</span><span class="res-val" id="accelPay">—</span></div>
+              <div class="res-row"><span class="res-label">Paid Off In</span><span class="res-val" id="accelTime">—</span></div>
+              <div class="res-row"><span class="res-label">Time Saved</span><span class="res-val" id="accelSaved">—</span></div>
+              <div class="res-row"><span class="res-label">Interest Saved</span><span class="res-val" id="accelInt">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 15 YEAR -->
+        <div class="panel">
+          <div class="loan-head">
+            <div class="loan-term">15-Year Fixed</div>
+            <span class="loan-chip">180 Payments</span>
+          </div>
+          <div class="loan-fields">
+            <div class="field">
+              <label for="rate15">Interest Rate</label>
+              <div class="input-wrap">
+                <span class="affix suf">%</span>
+                <input class="has-suf" id="rate15" type="number" inputmode="decimal" min="0" max="25" step="0.01" value="5.84">
+              </div>
+            </div>
+          </div>
+          <div class="divider-thin"></div>
+          <div class="res-row"><span class="res-label">Monthly Payment (P&amp;I)</span><span class="res-val big" id="pi15">—</span></div>
+          <div class="res-row"><span class="res-label">Total Interest</span><span class="res-val" id="int15">—</span></div>
+          <div class="res-row"><span class="res-label">Payoff Time</span><span class="res-val" id="time15">15 yrs</span></div>
+
+          <div class="accel" style="background:rgba(157,184,201,0.08);border-color:rgba(157,184,201,0.28);">
+            <div class="accel-title" style="color:var(--line-15);">vs. the 30-Year</div>
+            <div class="res-row" style="border-bottom-color:rgba(157,184,201,0.16);"><span class="res-label">Higher Monthly Payment</span><span class="res-val" style="color:var(--line-15);" id="payGap">—</span></div>
+            <div class="res-row" style="border-bottom:none;"><span class="res-label">Less Total Interest</span><span class="res-val" style="color:var(--line-15);" id="intGap">—</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RATE TRANSPARENCY -->
+      <section class="panel">
+        <div class="rate-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span id="rateNote">Rates are pre-filled with Freddie Mac's national weekly average and are not a personalized quote. Edit either rate to match your own.</span>
+        </div>
+      </section>
+
+      <!-- TAKEAWAY -->
+      <section class="panel takeaway">
+        <div class="takeaway-eyebrow">What This Means</div>
+        <div id="takeaway"></div>
+      </section>
+
+      <!-- CHART -->
+      <section class="panel">
+        <div class="panel-eyebrow">Balance Over Time</div>
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+        <div class="chart-legend">
+          <span class="leg"><span class="swatch" style="background:var(--line-30);"></span>30-Year</span>
+          <span class="leg"><span class="swatch" style="background:var(--line-extra);"></span>30-Year + Extra</span>
+          <span class="leg"><span class="swatch" style="background:var(--line-15);"></span>15-Year</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- CONTACT -->
+  <section class="contact-section">
+    <div class="contact-grid">
+      <a class="contact-link" id="contactJason" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Contact Jason
+      </a>
+      <a class="contact-link" id="contactAshlyn" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Contact Ashlyn
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-name">The Jason Kaczmarski Team &middot; RE/MAX 1st Choice</div>
+    <a class="footer-phone" id="footerPhone" href="#">615-384-7355</a>
+    <p class="footer-disclaimer">
+      <strong>For informational, educational, and entertainment purposes only. Please consult a licensed mortgage professional.</strong>
+      The Jason Kaczmarski Team provides educational tools to help understand the basics of home buying. Nothing in this tool should be understood as a commitment to lend, is not a guarantee of approval, and is subject to mortgage guidelines, credit score and history, income, amongst other factors. Please consult a licensed mortgage professional for accurate information.
+    </p>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — edit these in one place
+   ============================================================ */
+const CONFIG = {
+  hubUrl: 'https://jasonknashville.github.io/The-Jason-Kaczmarski-Team-Tool-Page/',
+  contactJason: 'https://jasonk.remax.com/contact.php',
+  contactAshlyn: 'https://ashlyn-sheppard.remax.com/contact.php',
+  phoneDisplay: '615-384-7355',
+  phoneTel: '6153847355',
+  // Freddie Mac PMMS national weekly averages.
+  // Update by hand each Thursday, OR drop a rates.json next to this file:
+  //   { "rate30": 6.49, "rate15": 5.84, "asOf": "June 25, 2026" }
+  defaultRate30: 6.49,
+  defaultRate15: 5.84,
+  rateAsOf: 'June 25, 2026'
+};
+
+/* wire up the static links */
+document.getElementById('backBtn').href = CONFIG.hubUrl;
+document.getElementById('contactJason').href = CONFIG.contactJason;
+document.getElementById('contactAshlyn').href = CONFIG.contactAshlyn;
+document.getElementById('footerPhone').href = 'tel:' + CONFIG.phoneTel;
+document.getElementById('footerPhone').textContent = CONFIG.phoneDisplay;
+
+/* ============================================================
+   Formatting helpers
+   ============================================================ */
+const usd0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const money = v => (isFinite(v) ? usd0.format(Math.max(0, Math.round(v))) : '—');
+function ym(months) {
+  if (!isFinite(months) || months <= 0) return '—';
+  const y = Math.floor(months / 12), m = Math.round(months % 12);
+  const yy = y > 0 ? y + (y === 1 ? ' yr' : ' yrs') : '';
+  const mm = m > 0 ? m + (m === 1 ? ' mo' : ' mos') : '';
+  return (yy + ' ' + mm).trim() || '0 mos';
+}
+const num = id => parseFloat(document.getElementById(id).value) || 0;
+
+/* ============================================================
+   Amortization engine
+   ============================================================ */
+function amortize(principal, annualRatePct, termMonths, extra) {
+  const i = annualRatePct / 100 / 12;
+  if (principal <= 0) return { monthlyPI: 0, payment: 0, months: 0, totalInterest: 0, balances: [0] };
+  const basePay = (i === 0) ? principal / termMonths
+                            : principal * i / (1 - Math.pow(1 + i, -termMonths));
+  const payment = basePay + (extra > 0 ? extra : 0);
+  let balance = principal, totalInterest = 0, month = 0;
+  const balances = [principal];
+  while (balance > 0.005 && month < 1200) {
+    const interest = balance * i;
+    let principalPaid = payment - interest;
+    if (principalPaid <= 0) return { monthlyPI: basePay, payment, months: Infinity, totalInterest: Infinity, balances };
+    if (principalPaid > balance) principalPaid = balance;
+    totalInterest += interest;
+    balance -= principalPaid;
+    month++;
+    balances.push(Math.max(balance, 0));
+  }
+  return { monthlyPI: basePay, payment, months: month, totalInterest, balances };
+}
+/* sample a balance series yearly across 30 years for the chart */
+function yearly(balances) {
+  const out = [];
+  for (let m = 0; m <= 360; m += 12) out.push(m < balances.length ? balances[m] : 0);
+  return out;
+}
+
+/* ============================================================
+   Main calculation + render
+   ============================================================ */
+let chart = null;
+
+function calc() {
+  const price = num('price');
+  const downPct = Math.min(num('downPct'), 100);
+  const loan = Math.max(0, price * (1 - downPct / 100));
+  const down = price - loan;
+  const extra = Math.max(0, num('extra'));
+  const r30 = num('rate30');
+  const r15 = num('rate15');
+
+  const base30 = amortize(loan, r30, 360, 0);
+  const fast30 = amortize(loan, r30, 360, extra);
+  const base15 = amortize(loan, r15, 180, 0);
+
+  /* shared readout */
+  document.getElementById('loanReadout').innerHTML =
+    `Loan amount: <b>${money(loan)}</b> &nbsp;·&nbsp; Down payment: <b>${money(down)}</b> (${(downPct).toLocaleString('en-US',{maximumFractionDigits:1})}%) ` +
+    `&nbsp;·&nbsp; <span style="color:var(--text-faint)">Compares principal &amp; interest only — taxes &amp; insurance are the same for both terms.</span>`;
+
+  /* 30-year */
+  document.getElementById('pi30').textContent = money(base30.monthlyPI);
+  document.getElementById('int30').textContent = money(base30.totalInterest);
+  document.getElementById('time30').textContent = '30 yrs';
+
+  /* 15-year */
+  document.getElementById('pi15').textContent = money(base15.monthlyPI);
+  document.getElementById('int15').textContent = money(base15.totalInterest);
+  document.getElementById('time15').textContent = '15 yrs';
+
+  /* 15 vs 30 gaps */
+  const payGap = base15.monthlyPI - base30.monthlyPI;
+  const intGap = base30.totalInterest - base15.totalInterest;
+  document.getElementById('payGap').textContent = (payGap >= 0 ? '+' : '−') + money(Math.abs(payGap)).replace('$','$') + ' /mo';
+  document.getElementById('intGap').textContent = money(Math.abs(intGap));
+
+  /* accelerated 30-year block */
+  const accelBody = document.getElementById('accelBody');
+  const accelTitle = document.getElementById('accelTitle');
+  const monthsSaved = base30.months - fast30.months;
+  const intSaved = base30.totalInterest - fast30.totalInterest;
+  if (extra > 0 && loan > 0 && isFinite(fast30.months)) {
+    accelTitle.textContent = `With ${money(extra)} / Month Extra`;
+    document.getElementById('accelPay').textContent = money(fast30.payment) + ' /mo';
+    document.getElementById('accelTime').textContent = ym(fast30.months);
+    document.getElementById('accelSaved').textContent = ym(monthsSaved);
+    document.getElementById('accelInt').textContent = money(intSaved);
+    accelBody.querySelectorAll('.res-row').forEach(r => r.style.display = '');
+  } else {
+    accelTitle.textContent = 'Add Extra Toward Principal';
+    accelBody.innerHTML = '<div class="accel-empty">Enter an amount in “Extra / Month (30-yr)” above to see how much faster the 30-year pays off and how much interest you’d save.</div>';
+  }
+
+  renderTakeaway({ loan, extra, base30, fast30, base15, payGap, intGap, monthsSaved, intSaved });
+  renderChart(base30, fast30, base15);
+}
+
+function renderTakeaway(d) {
+  const el = document.getElementById('takeaway');
+  if (d.loan <= 0) { el.innerHTML = '<p>Enter a home price above to see the comparison.</p>'; return; }
+  const lines = [];
+
+  lines.push(
+    `The <b>15-year</b> costs about <b>${money(d.payGap)} more per month</b> than the 30-year, ` +
+    `but pays off in half the time and saves roughly <b>${money(d.intGap)}</b> in total interest.`
+  );
+
+  if (d.extra > 0 && isFinite(d.fast30.months)) {
+    lines.push(
+      `Putting <b>${money(d.extra)} extra</b> toward the 30-year each month pays it off in ` +
+      `<b>${ym(d.fast30.months)}</b> — about <b>${ym(d.monthsSaved)} sooner</b> — and saves <b>${money(d.intSaved)}</b> in interest.`
+    );
+
+    /* compare the accelerated 30-yr to the 15-yr */
+    const vsTime = d.fast30.months - d.base15.months;            // + means 30+extra still slower
+    const vsInt  = d.fast30.totalInterest - d.base15.totalInterest;
+    const reqGap = d.base15.monthlyPI - d.fast30.payment;        // 15-yr required pay minus your chosen 30+extra
+    let line3 = `Even with that extra, the 15-year still finishes `;
+    line3 += vsTime > 0 ? `<b>${ym(Math.abs(vsTime))} sooner</b>` : (vsTime < 0 ? `<b>${ym(Math.abs(vsTime))} later</b>` : `at the <b>same time</b>`);
+    line3 += ` and costs `;
+    line3 += vsInt > 0 ? `<b>${money(Math.abs(vsInt))} less</b> in interest` : `<b>${money(Math.abs(vsInt))} more</b> in interest`;
+    line3 += `. The difference: the 15-year <i>locks in</i> that higher payment, while extra on the 30-year stays flexible — `;
+    line3 += reqGap >= 0 ? `the 15-year still requires about <b>${money(reqGap)} more</b> a month than what you’re paying here.`
+                         : `you’re already paying about <b>${money(Math.abs(reqGap))} more</b> a month than the 15-year would require.`;
+    lines.push(line3);
+  } else {
+    lines.push(`Add an extra monthly amount to the 30-year above to see how close it can get to the 15-year’s payoff speed — while keeping the lower required payment as a safety net.`);
+  }
+
+  el.innerHTML = lines.map(l => `<p>${l}</p>`).join('');
+}
+
+function renderChart(base30, fast30, base15) {
+  if (typeof Chart === 'undefined') return;
+  const labels = Array.from({ length: 31 }, (_, k) => k);
+  const data30 = yearly(base30.balances);
+  const dataFast = yearly(fast30.balances);
+  const data15 = yearly(base15.balances);
+  const ds = (label, data, color, dash) => ({
+    label, data, borderColor: color, backgroundColor: color,
+    borderWidth: 2.5, borderDash: dash || [], pointRadius: 0, pointHoverRadius: 4,
+    tension: 0.15, fill: false
+  });
+  const css = getComputedStyle(document.documentElement);
+  const c30 = css.getPropertyValue('--line-30').trim();
+  const c15 = css.getPropertyValue('--line-15').trim();
+  const cEx = css.getPropertyValue('--line-extra').trim();
+
+  const cfg = {
+    type: 'line',
+    data: { labels, datasets: [
+      ds('30-Year', data30, c30),
+      ds('30-Year + Extra', dataFast, cEx),
+      ds('15-Year', data15, c15)
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(11,15,23,0.92)', borderColor: 'rgba(201,169,110,0.4)', borderWidth: 1,
+          titleColor: '#e8d5b0', bodyColor: '#fff', padding: 12, cornerRadius: 10,
+          titleFont: { family: 'Jost' }, bodyFont: { family: 'Jost' },
+          callbacks: {
+            title: items => 'Year ' + items[0].label,
+            label: ctx => ctx.dataset.label + ': ' + money(ctx.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Years', color: 'rgba(255,255,255,0.5)', font: { family: 'Jost', size: 11 } },
+          ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Jost', size: 11 }, maxTicksLimit: 11 },
+          grid: { color: 'rgba(255,255,255,0.06)' }
+        },
+        y: {
+          ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Jost', size: 11 }, callback: v => '$' + (v/1000) + 'k' },
+          grid: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  };
+  if (chart) { chart.data = cfg.data; chart.update(); }
+  else chart = new Chart(document.getElementById('chart'), cfg);
+}
+
+/* ============================================================
+   Optional live rates (Freddie Mac via rates.json) with fallback
+   ============================================================ */
+function applyRateNote() {
+  document.getElementById('rateNote').innerHTML =
+    `Rates are pre-filled with Freddie Mac's <b>national weekly average</b> ` +
+    `(30-yr ${CONFIG.defaultRate30}%, 15-yr ${CONFIG.defaultRate15}%, as of ${CONFIG.rateAsOf}) and are <b>not a personalized quote</b>. ` +
+    `Updated weekly — edit either rate to match your own.`;
+}
+async function loadRates() {
+  try {
+    const res = await fetch('rates.json', { cache: 'no-store' });
+    if (!res.ok) return false;
+    const d = await res.json();
+    let changed = false;
+    if (typeof d.rate30 === 'number') { CONFIG.defaultRate30 = d.rate30; changed = true; }
+    if (typeof d.rate15 === 'number') { CONFIG.defaultRate15 = d.rate15; changed = true; }
+    if (d.asOf) CONFIG.rateAsOf = d.asOf;
+    if (changed) {
+      document.getElementById('rate30').value = CONFIG.defaultRate30;
+      document.getElementById('rate15').value = CONFIG.defaultRate15;
+    }
+    return changed;
+  } catch (e) { return false; }
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+['price','downPct','extra','rate30','rate15'].forEach(id =>
+  document.getElementById(id).addEventListener('input', calc));
+
+document.getElementById('rate30').value = CONFIG.defaultRate30;
+document.getElementById('rate15').value = CONFIG.defaultRate15;
+applyRateNote();
+calc();
+
+/* try to pull the latest weekly rate if a rates.json is present; otherwise keep defaults */
+loadRates().then(() => { applyRateNote(); calc(); });
+</script>
+</body>
+</html>
